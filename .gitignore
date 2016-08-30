@@ -1,0 +1,9 @@
+rethinkdb_data
+**/*.log
+.hz/secrets.toml
+
+node_modules/
+build/
+
+horizon-cert.pem
+horizon-key.pem

@@ -1,0 +1,108 @@
+
+# Collections
+
+[collections.users]
+indexes = ["id"]
+
+[collections.questions]
+indexes = ["userId","title","createdAt"]
+
+[collections.tutorials]
+indexes = ["userId","title","createdAt"]
+
+[collections.comments] # A comment can be placed on a question or in a tutorial
+indexes = ["userId","collection","key","createdAt"]
+
+# Rules
+
+## Admin - a.k.a. data angel
+[groups.admin]
+[groups.admin.rules.carte_blanche]
+template = "any()"
+
+## Default - All users, authenticated or not
+[groups.default.rules.read_current_user]
+template = "collection('users').find({ id: userId() }).fetch()"
+
+[groups.default.rules.read_any_question]
+template = "collection('questions').anyRead()"
+
+[groups.default.rules.read_any_tutorial]
+template = "collection('tutorials').anyRead()"
+
+[groups.default.rules.read_any_comment]
+template = "collection('comments').anyRead()"
+
+## Authenticated - Those who are part of the community
+
+### Store and edit own questions
+[groups.authenticated.rules.questions_store]
+template = "collection('questions').store({owner: userId(), title: any(), body: any(), createdAt: any()})"
+validator = ```
+  (context, oldValue, newValue) => (
+    typeof newValue.title == 'string' && newValue.title.trim() &&
+    typeof newValue.body == 'string' && newValue.body.trim() &&
+
+    // TODO: add a better verification to createdAt
+    typeof newValue.createdAt == 'number' && newValue.createdAt > 0
+  )
+```
+
+[groups.authenticated.rules.questions_replace]
+template = "collection('questions').replace({title: any(), body: any()})"
+validator = ```
+  (context, oldValue, newValue) => (
+    typeof newValue.title == 'string' && newValue.title.trim() &&
+    typeof newValue.body == 'string' && newValue.body.trim()
+  )
+```
+
+### Store and edit own tutorials
+[groups.authenticated.rules.tutorials_store]
+template = "collection('tutorials').store({owner: userId(), title: any(), body: any(), createdAt: any()})"
+validator = ```
+  (context, oldValue, newValue) => (
+    typeof newValue.title == 'string' && newValue.title.trim() &&
+    typeof newValue.body == 'string' && newValue.body.trim() &&
+
+    // TODO: add a better verification to createdAt
+    typeof newValue.createdAt == 'number' && newValue.createdAt > 0
+  )
+```
+
+[groups.authenticated.rules.tutorials_replace]
+template = "collection('tutorials').replace({title: any(), body: any()})"
+validator = ```
+  (context, oldValue, newValue) => (
+    typeof newValue.title == 'string' && newValue.title.trim() &&
+    typeof newValue.body == 'string' && newValue.body.trim()
+  )
+```
+
+### Store and edit own comments
+[groups.authenticated.rules.comments_store]
+template = "collection('comments').store({owner: userId(), collection: any(), key: any(), text: any(), createdAt: any()})"
+validator = ```
+  (context, oldValue, newValue) => (
+    // collection must be either 'questions' or 'tutorials'
+    ['questions','tutorials'].indexOf(newValue.collection) !== -1 &&
+
+    // key mus be a valid uuid and cannot be updated
+    typeof newValue.key == 'string' && key &&
+
+    typeof newValue.text == 'string' && newValue.text.trim() &&
+
+    // TODO: add a better verification to createdAt
+    typeof newValue.createdAt == 'number' && newValue.createdAt > 0
+  )
+```
+
+[groups.authenticated.rules.comments_replace]
+template = "collection('tutorials').replace({text: any()})"
+validator = ```
+  (context, oldValue, newValue) => (
+    typeof newValue.text == 'string' && newValue.text.trim()
+  )
+```
+
+# TODO: Check later if a user can edit another user's comments 

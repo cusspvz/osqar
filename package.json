@@ -1,0 +1,61 @@
+{
+  "name": "osqar",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "multi:": "npm_multi () { for cmd in $*; do npm run $cmd || exit 1; done; }; npm_multi",
+    "env:prod": "export NODE_ENV=production; npm run ",
+    "env:dev": "export NODE_ENV=development; npm run ",
+    "target:browser": "export TARGET=browser; npm run ",
+    "target:cordova": "export TARGET=cordova; npm run ",
+    "target:server": "export TARGET=server; npm run ",
+    "webpack:build": "webpack --config webpack/config",
+    "horizon:serve": "horizon serve",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "development": "open https://localhost:8181; concurrently --kill-others -n webpack:build,horizon:serve  \"npm run env:dev webpack:build -- -- --watch\" \"npm run env:dev horizon:serve -- -- --secure=yes --permissions=no --auto-create-collection=yes --auto-create-index=yes --start-rethinkdb=yes --allow-unauthenticated=yes --allow-anonymous=yes --serve-static=build/browser\""
+  },
+  "author": "",
+  "license": "ISC",
+  "babel": {
+    "plugins": [
+      "transform-decorators-legacy"
+    ],
+    "presets": [
+      "es2015",
+      "stage-0",
+      "react"
+    ]
+  },
+  "devDependencies": {
+    "babel-core": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-plugin-transform-runtime": "^6.12.0",
+    "babel-polyfill": "^6.13.0",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-react": "^6.11.1",
+    "babel-preset-stage-0": "^6.5.0",
+    "concurrently": "^2.2.0",
+    "file-loader": "^0.9.0",
+    "webpack": "^1.13.2",
+    "webpack-configurator": "^0.3.1",
+    "webpack-dev-server": "^1.15.0"
+  },
+  "dependencies": {
+    "@horizon/client": "^2.0.0",
+    "horizon-react": "^0.3.2",
+    "react": "^15.3.1",
+    "react-dom": "^15.3.1",
+    "react-icons": "^2.2.1",
+    "react-redux": "^4.4.5",
+    "react-router": "^2.7.0",
+    "react-router-redux": "^4.0.5",
+    "rebass": "^0.3.1",
+    "redux": "^3.5.2",
+    "redux-actions": "^0.11.0",
+    "redux-thunk": "^2.1.0",
+    "reflexbox": "^2.1.0",
+    "webpack": "^1.13.2"
+  }
+}
