@@ -1,7 +1,11 @@
 import React, { Component } from 'react'
 import { subscribe } from 'horizon-react'
 
-import ButtonCircle from 'rebass/dist/ButtonCircle'
+import Flex from 'reflexbox/dist/Flex'
+import Box from 'reflexbox/dist/Box'
+import Space from 'rebass/dist/Space'
+import Container from 'rebass/dist/Container'
+import ButtonOutline from 'rebass/dist/ButtonOutline'
 
 import FaFacebook from 'react-icons/lib/fa/facebook'
 import FaGithub from 'react-icons/lib/fa/github'
@@ -10,17 +14,27 @@ import FaGithub from 'react-icons/lib/fa/github'
 export default class AccountSignIn extends Component {
   render () {
     return (
-      <div>
+      <Container>
 
-        <ButtonCircle title="Like" onClick={this.auth('facebook')}>
-          <FaFacebook />
-        </ButtonCircle>
+        <Flex wrap justify="center">
+          <h4>Faz o teu login de forma fácil</h4>
+        </Flex>
 
-        <ButtonCircle title="Like" onClick={this.auth('github')}>
-          <FaGithub />
-        </ButtonCircle>
+        <Flex wrap justify="center">
 
-      </div>
+          <ButtonOutline title="Like" onClick={this.auth('facebook')}>
+            <FaFacebook /> Facebook
+          </ButtonOutline>
+{/*
+          <Space />
+
+          <ButtonOutline title="Like" onClick={this.auth('github')}>
+            <FaGithub /> GitHub
+          </ButtonOutline> */}
+
+        </Flex>
+
+      </Container>
     )
   }
 
@@ -30,7 +44,7 @@ export default class AccountSignIn extends Component {
 
       horizon
         .authEndpoint( provider )
-        .subscribe( (endpoint) => window.location.replace(endpoint) )
+        .subscribe( ( endpoint ) => window.location.replace(endpoint) )
     }
   )
 }

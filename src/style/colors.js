@@ -2,6 +2,7 @@ export const base = {
   black: '#111',
   white: '#fff',
   gray: '#ddd',
+  border: '#eee',
   midgray: '#888',
   blue: '#1d8add',
   red: '#db4e23',

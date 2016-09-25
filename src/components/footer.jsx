@@ -9,7 +9,8 @@ import FaGithub from 'react-icons/lib/fa/github'
 export default class FooterComponent extends Component {
   render () {
     return (
-      <Footer>
+      <Footer justify="space-between">
+        <Space col="1" />
 
         <NavItem is={'a'} target="_blank" href="https://github.com/cusspvz">
           Made with <GoHeart fill="red" style={{ margin: '0 4px' }}/> by José Moreira
@@ -19,15 +20,13 @@ export default class FooterComponent extends Component {
           <FaGithub style={{ margin: '0 4px' }}/> Source-code
         </NavItem>
 
-        <Space
-          auto
-          x={1}
-        />
+        <Space auto />
 
         <NavItem is={'span'}>
           © 2016
         </NavItem>
 
+        <Space col="1" />
       </Footer>
     )
   }

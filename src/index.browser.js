@@ -27,3 +27,6 @@ export const routes = Routes({ store, horizon }, {
     document.getElementById( 'rt' )
   )
 // })
+
+
+window.horizon = horizon 

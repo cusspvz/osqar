@@ -10,11 +10,11 @@ export default ({ store, horizon }, routerProps) => (
     <Route component={require( './components/app' ).default}>
       <Route path="/" component={require( './pages/home' ).default} />
 
-      <Route path="questions">
+      <Route path="question">
         <IndexRoute component={require( './pages/question/list' ).default} />
 
-        <Route path=":id" component={require( './pages/question/page' ).default} />
         <Route path="new" component={require( './pages/question/new' ).default} />
+        <Route path=":id" component={require( './pages/question/page' ).default} />
       </Route>
 
       <Route path="account">
