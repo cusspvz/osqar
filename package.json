@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@horizon/client": "^2.0.0",
+    "highlight.js": "^9.7.0",
     "horizon-react": "^0.3.2",
     "markdown-it": "^8.0.0",
     "react": "^15.3.1",

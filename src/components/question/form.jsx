@@ -1,6 +1,8 @@
 import React, { Component, PropTypes } from 'react'
 import languages from '../../data/languages'
-import md from '../../utils/md'
+import Markdown from '../../utils/md/component'
+import noop from '../../utils/noop'
+import buildError from '../../utils/build-error'
 
 import { base as baseColors } from '../../style/colors'
 
@@ -28,7 +30,7 @@ const BODY_PLACEHOLDER =
 este é um **exemplo** de como poderá ser redigida uma pergunta à comunidade.
 Neste exemplo quero falar como posso facilmente incluir o meu código com a dúvida:
 
-\`\`\`nome_do_ficheiro.js
+\`\`\`javascript
 // Código com highlights de Javascript ( reparem no js no nome do ficheiro )
 
 var exemplo = "de código JS"
@@ -37,7 +39,7 @@ var exemplo2
 console.log( typeof exemplo, typeof exemplo2 )
 \`\`\`
 
-\`\`\`iniciar.sh
+\`\`\`bash
 #!/bin/bash
 # Exemplo de highlight em bash
 
@@ -61,33 +63,73 @@ José Moreira`
 export default class QuestionForm extends Component {
 
   static propTypes = {
-    edit: PropTypes.bool,
+    editting: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
   }
 
+  static defaultProps = {
+    editting: false,
+    onChange: noop,
+    onSubmit: noop,
+    onCancel: noop,
+  }
+
+  componentDidMount () {
+    this.validate( false )
+  }
+
+  componentDidUpdate () {
+    this.validate( false )
+  }
+
   state = {
-    ...this.props.data,
+    loading: false,
+    values: {
+      ...this.props.data
+    },
+    errors: {}
   }
 
   render () {
-    const { edit } = this.props
-    const { title, body, language } = this.state
+    const { editting } = this.props
+    const { values: { title, body, language }, errors } = this.state
+
+    const warnings = this.warningErrors
+    const fatals = this.fatalErrors
 
     return (
       <Flex wrap>
         <Box p={2} col={12} sm={6}>
           <Heading level={4} mb={2}>
-            {edit ?
+            {editting ?
               "Editar uma pergunta" :
               "Criar uma nova pergunta"
             }
           </Heading>
 
           <form onSubmit={this.handleSubmit}>
+
+            { fatals.length > 0 && (
+              <Message inverted theme="error">
+                {fatals.map(
+                  (e) => <Box col={12}>{e.message}</Box>
+                )}
+              </Message>
+            )}
+
+            { warnings.length > 0 && (
+              <Message inverted theme="warning">
+                {warnings.map(
+                  (e) => <Box col={12}>{e.message}</Box>
+                )}
+              </Message>
+            )}
+
             <Select
               name='language'
+              theme={errors.language && errors.language.theme || 'default'}
               label='Língua de Programação'
               value={language}
               onChange={this.handleLanguageChange}
@@ -96,6 +138,7 @@ export default class QuestionForm extends Component {
 
             <Input
               name='title'
+              theme={errors.title && errors.title.theme || 'default'}
               label='Pergunta'
               placeholder={TITLE_PLACEHOLDER}
               value={title}
@@ -104,6 +147,7 @@ export default class QuestionForm extends Component {
 
             <Textarea
               name='body'
+              theme={errors.body && errors.body.theme || 'default'}
               label='Descrição'
               placeholder={BODY_PLACEHOLDER}
               value={body}
@@ -111,10 +155,10 @@ export default class QuestionForm extends Component {
               onChange={this.handleBodyChange}
             />
             <Message inverted theme="info">
-              <FaInfo /> A descrição da pergunta suporta formatação Markdown!
+              <FaInfo style={{ marginRight: 20 }}/> A descrição da pergunta suporta formatação Markdown!
             </Message>
 
-            <Button type="submit">
+            <Button type="submit" theme={fatals.length > 0 ? 'border': 'primary'}>
               Guardar
             </Button>
             <Space />
@@ -139,17 +183,139 @@ export default class QuestionForm extends Component {
 
             <Divider />
 
-            <div dangerouslySetInnerHTML={{ __html: md.render( body || BODY_PLACEHOLDER ) }} />
+            <Markdown body={body || BODY_PLACEHOLDER} />
           </Box>
         </Box>
       </Flex>
     )
   }
 
-  handleTitleChange = (e) => this.setState({ title: e.target.value })
-  handleLanguageChange = (e) => this.setState({ language: e.target.value })
-  handleBodyChange = (e) => this.setState({ body: e.target.value })
-  handleSubmit = (e) => e && e.preventDefault()
-  handleCancel = (e) => e && e.preventDefault()
+  get fatalErrors () {
+    return Object.values( this.state.errors )
+    .filter( error => error.type === 'fatal' )
+  }
+
+  get warningErrors () {
+    return Object.values( this.state.errors )
+    .filter( error => error.type === 'warning' )
+  }
+
+  handleTitleChange = (e) => {
+    const { values } = this.state
+    this.setState({ values: { ...values, title: e.target.value } })
+  }
+
+  handleLanguageChange = (e) => {
+    const { values } = this.state
+    this.setState({ values: { ...values, language: e.target.value } })
+  }
+
+  handleBodyChange = (e) => {
+    const { values } = this.state
+    this.setState({ values: { ...values, body: e.target.value } })
+  }
+
+  validate = ( force ) => {
+    const { values: { language, title, body }, errors } = this.state
+
+    const newErrors = {}
+    let changed = false
+
+    if ( force || typeof title != 'undefined' ) {
+      try {
+
+        if ( ! title ) {
+          throw buildError({ field: 'title', message: "É necessário um título.", type: 'fatal', theme: 'error' })
+        }
+
+        if ( title.length > 120 ) {
+          throw buildError({ field: 'title', message: "O título é muito longo.", type: 'fatal', theme: 'error' })
+        }
+
+        if ( title.length > 80 ) {
+          throw buildError({ field: 'title', message: "O título deve ser explicito, tenta resumir o problema em poucas palavras.", type: 'warning', theme: 'warning' })
+        }
+
+        if ( ! changed && errors.title ) {
+          changed = true
+        }
+
+      } catch ( err ) {
+        newErrors.title = err
+
+        if ( ! changed ) {
+          changed = ! errors.title || errors.title.message !== err.message || false
+        }
+      }
+    }
+
+    if ( force || typeof body != 'undefined' ) {
+      try {
+
+        if ( ! body ) {
+          throw buildError({ field: 'body', message: "É necessário uma descrição.", type: 'fatal', theme: 'error' })
+        }
+
+        if ( title.length < 80 ) {
+          throw buildError({ field: 'body', message: "Tenta explicar detalhadamente o teu problema na descrição para que os membros consigam entende-lo melhor. Quanto melhor for a explicação, mais rápida será a resposta.", type: 'warning', theme: 'warning' })
+        }
+
+        if ( ! changed && errors.body ) {
+          changed = true
+        }
+
+      } catch ( err ) {
+        newErrors.body = err
+
+        if ( ! changed ) {
+          changed = ! errors.body || errors.body.message !== err.message || false
+        }
+      }
+    }
+
+    if ( changed ) {
+      this.setState({ errors: newErrors })
+    }
+
+  }
+
+
+  handleSubmit = async (e) => {
+    e && e.preventDefault()
+
+    const { state: { loading, values }, props: { onSubmit } } = this
+
+    if ( loading || this.fatalErrors.length > 0 ) {
+      return
+    }
+
+    this.setState({ loading: true })
+    await onSubmit( values )
+    this.setState({ loading: false })
+  }
+
+  handleCancel = async (e) => {
+    e && e.preventDefault()
+
+    const { state: { loading }, props: { onCancel } } = this
+
+    if ( loading ) {
+      return
+    }
+
+    onCancel( values )
+  }
+
+  handleChange = (e) => {
+    e && e.preventDefault()
+
+    const { state: { loading, values, errors }, props: { onChange } } = this
+
+    if ( loading ) {
+      return
+    }
+
+    onChange( values, errors )
+  }
 
 }

@@ -1,9 +1,19 @@
 import MarkdownIt from 'markdown-it'
+import hljs from 'highlight.js'
 
 const md = new MarkdownIt({
   linkify: true,
   breaks: true,
   xhtmlOut: true,
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return hljs.highlight(lang, str).value;
+      } catch (__) {}
+    }
+
+    return ''; // use external default escaping
+  }
 })
 
 // Remember old renderer, if overriden, or proxy to default renderer
